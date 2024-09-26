@@ -1,0 +1,74 @@
+import requests
+import psycopg2
+import json
+from datetime import datetime
+
+# Configuration
+API_URL = "https://api.example.com/data"
+DB_NAME = "your_database"
+DB_USER = "your_username"
+DB_PASSWORD = "your_password"
+DB_HOST = "localhost"
+DB_PORT = "5432"
+
+def extract_data_from_api():
+    """Extract data from the API"""
+    response = requests.get(API_URL)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise Exception(f"API request failed with status code {response.status_code}")
+
+def transform_data(data):
+    """Transform the data as needed"""
+    # This is a placeholder. Modify this function based on your specific transformation needs.
+    transformed_data = []
+    for item in data:
+        transformed_item = {
+            "id": item["id"],
+            "name": item["name"].upper(),
+            "value": float(item["value"]),
+            "date": datetime.strptime(item["date"], "%Y-%m-%d").date()
+        }
+        transformed_data.append(transformed_item)
+    return transformed_data
+
+def load_data_to_postgres(data):
+    """Load the transformed data into PostgreSQL"""
+    conn = psycopg2.connect(
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        host=DB_HOST,
+        port=DB_PORT
+    )
+    cur = conn.cursor()
+    
+    for item in data:
+        cur.execute(
+            "INSERT INTO your_table (id, name, value, date) VALUES (%s, %s, %s, %s)",
+            (item["id"], item["name"], item["value"], item["date"])
+        )
+    
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def run_etl_pipeline():
+    """Run the entire ETL pipeline"""
+    try:
+        # Extract
+        raw_data = extract_data_from_api()
+        
+        # Transform
+        transformed_data = transform_data(raw_data)
+        
+        # Load
+        load_data_to_postgres(transformed_data)
+        
+        print("ETL pipeline completed successfully!")
+    except Exception as e:
+        print(f"ETL pipeline failed: {str(e)}")
+
+if __name__ == "__main__":
+    run_etl_pipeline()
