@@ -3,3 +3,9 @@ from config import DB_CONFIG, DATABASES  # Import the configuration file
 from faker import Faker
 from random import choices
 import string
+
+# Initialize the Faker instance
+fake = Faker()
+
+# Static password hash for all users except {company}.com emails
+STATIC_PASSWORD_HASH = '$2y$10$wBy0RDzqdb6XxiQvMwu/2eWCMxdJJPOtmpWRhFNci/f5Cvl80Oikq'
